@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link
+      href="https://cdn.jsdelivr.net/npm/flowbite@3.1.2/dist/flowbite.min.css"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="flex items-center justify-center min-h-screen bg-green-100">
+    <script src="https://cdn.jsdelivr.net/npm/flowbite@3.1.2/dist/flowbite.min.js"></script>
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        const dateInput = document.getElementById("default-datepicker");
+
+        // Initialize Flowbite's Datepicker
+        if (window.datepicker) {
+          new window.datepicker(dateInput, {
+            format: "yyyy-mm-dd",
+            autoHide: true,
+          });
+        } else {
+          console.error("Flowbite's datepicker is not loaded.");
+        }
+      });
+    </script>
+
+    <div
+      class="flex flex-col items-center gap-6 p-4 rounded-md  max-w-sm w-full bg-white/30 backdrop-blur-md"
+    >
+      <div>
+        <label class="text-sm font-medium">PDF Rotate and Rename</label>
+      </div>
+      <!-- Dropdown -->
+      <div class="w-full">
+        <label
+          for="countries"
+          class="block mb-2 text-sm font-medium text-gray-900 dark:text-black"
+          >Select Rotation</label
+        >
+        <select
+          id="rotation"
+          class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+        >
+          <option selected value="">Choose Rotation</option>
+          <option value="90">Right</option>
+          <option value="-90">Left</option>
+        </select>
+      </div>
+
+      <!-- Date Picker -->
+      <div class="w-full">
+        <label
+          class="block mb-2 text-sm font-medium text-gray-900 dark:text-black"
+          >Starting date</label
+        >
+        <div class="relative max-w-sm w-full">
+          <div
+            class="absolute inset-y-0 start-0 flex items-center ps-3.5 pointer-events-none"
+          >
+            <svg
+              class="w-4 h-4 text-gray-500 dark:text-gray-400"
+              aria-hidden="true"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="currentColor"
+              viewBox="0 0 20 20"
+            >
+              <path
+                d="M20 4a2 2 0 0 0-2-2h-2V1a1 1 0 0 0-2 0v1h-3V1a1 1 0 0 0-2 0v1H6V1a1 1 0 0 0-2 0v1H2a2 2 0 0 0-2 2v2h20V4ZM0 18a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8H0v10Zm5-8h10a1 1 0 0 1 0 2H5a1 1 0 0 1 0-2Z"
+              />
+            </svg>
+          </div>
+          <input
+            datepicker
+            id="default-datepicker"
+            type="text"
+            class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full ps-10 p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+            placeholder="Select date"
+          />
+        </div>
+      </div>
+      <!-- File Input -->
+      <div class="w-full">
+        <label
+          class="block mb-2 text-sm font-medium text-gray-900 dark:text-black"
+          for="multiple_files"
+          >Upload multiple files</label
+        >
+        <input
+          id="multiple_files"
+          type="file"
+          multiple
+          class="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 dark:text-gray-400 focus:outline-none dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400"
+        />
+      </div>
+
+      <!-- Rotate Button -->
+      <div class="w-full">
+        <button
+          id="rotate-btn"
+          type="button"
+          class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800"
+        >
+          Rotate
+        </button>
+      </div>
+    </div>
+
+    <script>
+      document
+        .getElementById("rotate-btn")
+        .addEventListener("click", function () {
+          const rotation = document.getElementById("rotation").value;
+          const date = document.getElementById("default-datepicker").value;
+          const files = document.getElementById("multiple_files").files;
+          console.log("date", date);
+          if (!rotation || !date || files.length === 0) {
+            alert("Please select rotation, date, and at least one file.");
+            return;
+          }
+
+          const formData = new FormData();
+          formData.append("rotation", rotation);
+          formData.append("date", date);
+
+          for (let i = 0; i < files.length; i++) {
+            formData.append("files", files[i]);
+          }
+
+          fetch("http://127.0.0.1:5000/rotate-pdf", {
+            method: "POST",
+            body: formData,
+          })
+            .then((response) => {
+              if (!response.ok) {
+                throw new Error(`Error: ${response.statusText}`);
+              }
+              return response.json();
+            })
+            .then((result) => {
+              console.log("Processed PDFs:", result);
+
+              // Auto-download each processed PDF
+              if (result.processed_pdfs) {
+                result.processed_pdfs.forEach((pdf) => {
+                  const link = document.createElement("a");
+                  link.href = pdf.download_url;
+                  link.download = pdf.filename; // Set the filename for download
+                  document.body.appendChild(link);
+                  link.click(); // Trigger download
+                  document.body.removeChild(link); // Clean up after click
+                });
+              }
+              alert("Successfully Rotated");
+            })
+            .catch((error) => {
+              console.error("Error uploading PDFs:", error);
+              alert("error", error);
+            });
+        });
+    </script>
+  </body>
+</html>

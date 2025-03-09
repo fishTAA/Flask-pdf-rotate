@@ -89,4 +89,4 @@ def download_file(filename):
 
 
 if __name__  in "__main__":
-    app.run(debug=True)
+    app.run()

@@ -2,6 +2,7 @@ from flask import Flask, render_template, request, jsonify, send_file ,url_for, 
 from PyPDF2 import PdfReader, PdfWriter
 from datetime import datetime
 from werkzeug.utils import secure_filename
+from datetime import timedelta
 import os
 
 app = Flask(__name__)
@@ -68,10 +69,11 @@ def rotate_pdf():
                         "download_url": url_for('download_file', filename=output_filename, _external=True)
                     })
 
-                starting_date = starting_date.replace(day=starting_date.day + 1)
+                starting_date += timedelta(days=1)
                 daycount = starting_date.isoweekday() 
 
             except Exception as e:
+                print(f"Error processing {filename}: {str(e)}")
                 return jsonify({"error": f"Error processing {filename}: {str(e)}"}), 500
 
     if not output_files:

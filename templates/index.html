@@ -113,7 +113,7 @@
       document
         .getElementById("rotate-btn")
         .addEventListener("click", function () {
-          const rotation = document.getElementById("rotation").value;
+          const rotation = parseInt(document.getElementById("rotation").value);
           const date = document.getElementById("default-datepicker").value;
           const files = document.getElementById("multiple_files").files;
           console.log("date", date);
